@@ -8,8 +8,7 @@ from sklearn import preprocessing
 import numpy as np
 
 
-def return_img_list(img_path,id_cree):
-
+def return_img_list(img_path, id_cree):
     # Get query image path
     image_path = img_path
 
@@ -20,8 +19,6 @@ def return_img_list(img_path,id_cree):
     # List where all the descriptors are stored
     des_list = []
     sift = cv2.xfeatures2d.SIFT_create()
-
-
 
     im = cv2.imread(image_path)
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
@@ -44,33 +41,31 @@ def return_img_list(img_path,id_cree):
 
     score = np.dot(test_features, im_features.T)
 
-    rank_ID = np.argsort(-score) #images classees par scores
+    rank_ID = np.argsort(-score)  # images classees par scores
 
-
-    idlist=[]
+    idlist = []
     for i, ID in enumerate(rank_ID[0][0:16]):
-        idlist.append(str(image_paths[ID]).replace('dataset-retr/train/','')) #contient le nom de l'img sans l'extension
+        idlist.append(
+            str(image_paths[ID]).replace('dataset-retr/train/', ''))  # contient le nom de l'img sans l'extension
 
-    images_triees=idlist
-    scores_tries=sorted(score[0],reverse=True)
+    images_triees = idlist
+    scores_tries = sorted(score[0], reverse=True)
 
+    list_to_write_indb = {}
+    for i in range(0, len(idlist)):
+        list_to_write_indb[idlist[i]] = scores_tries[i]
 
-    list_to_write_indb={}
-    for i in range(0,len(idlist)):
-        list_to_write_indb[idlist[i]]=scores_tries[i]
+    with open(
+            'bow_retrieval/dataset-retr/infos/matching.json') as f:  # on charge le fichier de correspondance json pour avoir un wikipedia
+        print(f)
+        data = json.load(f)
 
-    with open('bow_retrieval/dataset-retr/infos/matching.json') as f : #on charge le fichier de correspondance json pour avoir un wikipedia
-        data=json.load(f)
-
-    conn = sqlite3.connect("db.sqlite3") #connexion bd
+    conn = sqlite3.connect("db.sqlite3")  # connexion bd
     cursor = conn.cursor()
-    for i in range(0,len(list_to_write_indb)): #on stocke tous les resultats lies a la recherche du client
-        cursor.execute('INSERT INTO url_responses(request_id,image_url,score) VALUES (?,?,?)', (id_cree,data[images_triees[i]],str(scores_tries[i])[:5],))
+    for i in range(0, len(list_to_write_indb)):  # on stocke tous les resultats lies a la recherche du client
+        #images_triees[i].replace("\\",'/')
+        cursor.execute('INSERT INTO url_responses(request_id,image_url,score) VALUES (?,?,?)',
+                       (id_cree, data[images_triees[i].split('\\')[1]], str(scores_tries[i])[:5],))
     conn.commit()
     conn.close()
-    os.remove(image_path) #on supprime l'image (pas utile de la garder)
-
-
-
-
-
+    os.remove(image_path)  # on supprime l'image (pas utile de la garder)

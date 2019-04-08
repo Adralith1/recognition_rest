@@ -21,9 +21,10 @@ from django.contrib.staticfiles.views import serve
 from images import views
 
 urlpatterns = [
-    url(r'img_searches/feedback/(?P<pk>\d+)', views.Feedback.as_view()),
-    url(r'img_searches/(?P<pk>\d+)', views.ImgSearch.as_view()), #Sert au "GET" /img_searches/[id_requete]
-    url(r'img_searches', views.ImgSearch.as_view()) #Sert au "POST" /img_searches
+    url(r'img_searches/feedback/(?P<pk>\d+)', views.Feedback.as_view()), #donner un feedback
+    url(r'img_searches/new_base',views.NewBase.as_view()), #sert a utilisr une nouvelle base img
+    url(r'img_searches/(?P<pk>\d+)', views.ImgSearch.as_view()),  # Sert au "GET" /img_searches/[id_requete]
+    url(r'img_searches', views.ImgSearch.as_view())  # Sert au "POST" /img_searches
+
 
 ]
-

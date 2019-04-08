@@ -1,4 +1,3 @@
-
 import argparse as ap
 import cv2
 import numpy as np
@@ -16,13 +15,12 @@ import urllib
 import time
 
 # Get the training classes names and store them in a list
-
-train_path = "dataset-retr/train/"
-
+#def index():
+print("hello")
+train_path = "dataset-retr/train"
 
 training_names = os.listdir(train_path)
 print(training_names)
-
 
 numWords = 1000
 
@@ -66,6 +64,7 @@ voc, variance = kmeans(descriptors, numWords, 1)
 # Calculate the histogram of features
 im_features = np.zeros((len(image_paths), numWords), "float32")
 for i in range(len(image_paths)):
+    print("K means " + str(i) + " of " + str(len(image_paths)))
     words, distance = vq(des_list[i][1], voc)
     for w in words:
         im_features[i][w] += 1
@@ -80,40 +79,40 @@ im_features = preprocessing.normalize(im_features, norm='l2')
 
 joblib.dump((im_features, image_paths, idf, numWords, voc), "bof_retr.pkl", compress=3)
 
-#"bow_retrieval/dataset-retr/infos/matching.json"
+# "bow_retrieval/dataset-retr/infos/matching.json"
 
 
-print(image_paths)
 
 
-#Ci-dessous, le code utilisé pour uploader des images sur noelshack et générer le fichier matching.json
-
+# Ci-dessous, le code utilisé pour uploader des images sur noelshack et générer le fichier matching.json
 
 
 API_URL = 'http://www.noelshack.com/api.php'
-matching = open("dataset-retr/infos/matching.json","w")
+matching = open("dataset-retr/infos/matching.json", "w")
 matching.write('{ \r')
-for i in range(0,len(training_names)):
+for i in range(0, len(training_names)):
     with open(image_paths[i], 'rb') as f:
+        print("Uploading image " + str(i) + " of " + str(len(training_names)) + " to NoelShack :D !")
         r = requests.post(API_URL, files={'fichier': f})
         url = r.text
-        name = image_paths[i].split('/')[2]
-        if "http://" not in url: #Si l'upload d'image n'a pas reussi
-            i=i-1 #Je reviens a l'etape d'avant
-            continue #et je retente
-        if i < (len(image_paths)-1): #si ce n'est pas la derniere ligne
-            matching.write('"'+name+'" : "' + url + '",\r') #ecriture du matching json forme { "nom" : "url" ,}
-            time.sleep(1) #time sleep pour eviter le ban
-        if i>=(len(image_paths)-1):
-            matching.write('"' + name + '" : "' + url + '" \r')  # ecriture du matching json forme { "nom" : "url" }
+        print(url)
+        print(image_paths[i].split('\\')[1])
+        name = image_paths[i].split('\\')[1]
+        if "http://" not in url:  # Si l'upload d'image n'a pas reussi
+            i = i - 1  # Je reviens a l'etape d'avant
+            print("Oops I failed, trying once more.")
+            continue  # et je retente
+        if i < (len(image_paths) - 1):  # si ce n'est pas la derniere ligne
+            matching.write('"' + name.replace('train\\','') + '" : "' + url + '",\r')  # ecriture du matching json forme { "nom" : "url" ,}
+            time.sleep(2)  # time sleep pour eviter le ban
+        if i >= (len(image_paths) - 1):
+            matching.write('"' + name.replace('train\\','') + '" : "' + url + '" \r')  # ecriture du matching json forme { "nom" : "url" }
 matching.write('}')
 matching.close()
 
-
-
-#API_URL = 'http://www.noelshack.com/api.php'
-#file="dataset-retr/train/1.png"
-#with open(file, 'rb') as f:
+# API_URL = 'http://www.noelshack.com/api.php'
+# file="dataset-retr/train/1.png"
+# with open(file, 'rb') as f:
 #    r = requests.post(API_URL, files={'fichier': f})
 
-#print(r.text)
+# print(r.text)
